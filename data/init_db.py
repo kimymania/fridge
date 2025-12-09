@@ -1,0 +1,17 @@
+from pathlib import Path
+from sqlite3 import Connection, Cursor, connect
+
+
+def create_db() -> tuple[Connection, Cursor]:
+    top_dir = Path(__file__).resolve().parents[1]
+    db_dir = top_dir / "db"
+    db_dir.mkdir(exist_ok=True)
+    db_name = "ubion.db"
+    db_path = str(db_dir / db_name)
+
+    conn = connect(db_path, check_same_thread=False)
+    curs = conn.cursor()
+    return conn, curs
+
+
+create_db()
