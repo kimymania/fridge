@@ -36,7 +36,6 @@ def add_food(food: Food):
     except IntegrityError as e:
         raise Duplicate(f"{food.food_name} is already in the fridge: {e}")
     conn.commit()
-    return get_all()
 
 
 def update_food_quantity(food: Food):
@@ -45,7 +44,6 @@ def update_food_quantity(food: Food):
     curs.execute(sql, params)
     if curs.rowcount == 1:
         conn.commit()
-        return get_all()
     else:
         raise Missing(f"{food.food_name} not found")
 
@@ -57,4 +55,3 @@ def remove_food(food_name: str):
     if curs.rowcount != 1:
         raise Missing(f"{food_name} not found")
     conn.commit()
-    return get_all()
