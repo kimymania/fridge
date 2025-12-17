@@ -4,6 +4,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
+from error import Duplicate
+from model.user import DB_User
 from service import user as service
 
 router = APIRouter(prefix="/user")
@@ -32,3 +34,16 @@ async def create_access_token(form_data: Annotated[OAuth2PasswordRequestForm, De
             expire=expire,
         )
         return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.post("/")
+async def create_user(user: DB_User):
+    try:
+        return service.create_user(user)
+    except Duplicate as e:
+        raise HTTPException(status_code=401, detail=e)
+
+
+@router.get("/{username}")
+def find_user(username):
+    return service.find_user(username)
