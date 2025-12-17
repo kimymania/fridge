@@ -27,6 +27,11 @@ def add_food(food: Food):
 
 @router.put("/")
 def update_food_quantity(food: Food):
+    if food.quantity < 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Food quantity needs to be higher than 0",
+        )
     try:
         return my_food.update_food_quantity(food)
     except Missing as e:

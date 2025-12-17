@@ -14,4 +14,4 @@ def create_db() -> tuple[Connection, Cursor]:
     return conn, curs
 
 
-create_db()
+conn, curs = create_db()

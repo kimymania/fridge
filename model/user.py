@@ -1,15 +1,11 @@
 from pydantic import BaseModel
 
 
-class Food(BaseModel):
-    food_name: str
-    quantity: int
-
-
 class User(BaseModel):
     name: str
     email: str
+    hashed_password: str
 
 
 class DB_User(User):
-    password: str
+    hashed_password: str

@@ -1,9 +1,9 @@
 import uvicorn
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/user")
+app = FastAPI()
 oauth2 = OAuth2PasswordBearer(tokenUrl="token")
 
 
@@ -39,7 +39,7 @@ def fake_hash_password(password: str):
 
 
 # Check user credentials
-@router.post("/token")
+@app.post("/token")
 def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user_dict = fake_user_db.get(form_data.username)
     if not user_dict:
@@ -81,9 +81,14 @@ async def get_current_active_user(current_user: dict = Depends(get_current_user)
 
 
 # Get user data
-@router.get("/login_data")
-async def read_me(user: dict = Depends(get_current_active_user)):
-    return user
+@app.get("/login_data")
+async def read_me(current_user: dict = Depends(get_current_active_user)):
+    return current_user
+
+
+@app.get("/user/user_only")
+async def user_only():
+    pass
 
 
 if __name__ == "__main__":
