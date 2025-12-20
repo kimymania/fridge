@@ -6,7 +6,7 @@ from model.user import DB_User, User
 from .init_db import conn, curs
 
 curs.execute("""
-    CREATE TABLE IF NOT EXISTS user(name text primary_key, email text, hashed_password text)
+    CREATE TABLE IF NOT EXISTS user(name TEXT PRIMARY KEY, email TEXT, hashed_password TEXT)
     """)
 
 
@@ -39,6 +39,6 @@ def create_user(user: DB_User):
     try:
         curs.execute(sql, params)
     except IntegrityError:
-        Duplicate(msg="이미 회원 가입이 되어있습니다.")
+        raise Duplicate(msg="이미 회원 가입이 되어있습니다.")
     conn.commit()
     return None

@@ -41,7 +41,14 @@ async def create_user(user: DB_User):
     try:
         return service.create_user(user)
     except Duplicate as e:
-        raise HTTPException(status_code=401, detail=e)
+        raise HTTPException(status_code=401, detail=e.msg)
+
+
+@router.get("/user_only")
+def check_user(token: str = Depends(oauth2)):
+    if service.check_user(token):
+        return "인증된 유저로 게시판에 접근이 가능합니다"
+    raise HTTPException(status_code=401, detail="게시판에 접근 권한이 없습니다.")
 
 
 @router.get("/{username}")

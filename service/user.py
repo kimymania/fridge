@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 import bcrypt
+from fastapi import HTTPException
 from jose import jwt
 
 from data import user as data
@@ -56,3 +57,37 @@ def create_user(user: DB_User):
         hashed_password=hash_password(user.hashed_password),
     )
     return data.create_user(user)
+
+
+_fake_db = {"bob": True, "jane": False}
+
+
+def decode_token(token: str):
+    payload = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
+    if not (username := payload.get("sub")):
+        return None
+    return username
+
+
+def get_current_user(token: str):
+    username = decode_token(token)
+    user = find_user(username)
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="올바르지 않은 인증정보입니다.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return user.name
+
+
+def check_usable(token: str):
+    username = get_current_user(token)
+    if _fake_db[username]:
+        return True
+    return False
+
+
+def check_user(token: str):
+    check = check_usable(token)
+    return check
