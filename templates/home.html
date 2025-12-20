@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width initial-scale=1.0" />
+    <title>고객관리 페이지</title>
+  </head>
+  <body>
+    <form action="/html" method="post">
+      <fieldset>
+        <legend>고객 생성</legend>
+        <input type="text" name="name" placeholder="이름" />
+        <input type="text" name="address" placeholder="주소" />
+        <input type="text" name="phone" placeholder="전화번호" />
+        <input type="text" name="email" placeholder="이메일" />
+        <input type="submit" />
+      </fieldset>
+    </form>
+    <br />
+    <table>
+      <tr>
+        <td>이름</td>
+        <td>주소</td>
+        <td>전화번호</td>
+        <td>이메일</td>
+      </tr>
+      {% for customer in customers %}
+      <tr>
+        <form action="/html/update" method="post">
+          <td><input type="text" name="original_name" value="{{ customer.name }}" readonly /></td>
+          <td><input type="text" name="name" value="{{ customer.name }}" /></td>
+          <td><input type="text" name="address" value="{{ customer.address }}" /></td>
+          <td><input type="text" name="phone" value="{{ customer.phone }}" /></td>
+          <td><input type="text" name="email" value="{{ customer.email }}" /></td>
+          <td><input type="submit" value="수정" /></td>
+        </form>
+      </tr>
+      {% endfor %}
+    </table>
+  </body>
+</html>
