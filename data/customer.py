@@ -61,3 +61,11 @@ def update_customer(customer_name: str, updated_customer: Customer):
         raise
     conn.commit()
     return None
+
+
+def delete_customer(name: str):
+    sql = "DELETE FROM customers WHERE name = :name"
+    params = {"name": name}
+    curs.execute(sql, params)
+    conn.commit()
+    return None

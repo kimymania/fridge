@@ -12,3 +12,7 @@ def create_customer(customer: Customer):
 
 def update_customer(customer_name: str, updated_customer: Customer):
     return data.update_customer(customer_name, updated_customer)
+
+
+def delete_customer(name: str):
+    return data.delete_customer(name)

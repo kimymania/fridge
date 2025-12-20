@@ -16,7 +16,7 @@ templates = Jinja2Templates(directory="templates")
 def get_all(request: Request):
     customers = service.get_all()
     return templates.TemplateResponse(
-        "home.html",
+        "index.html",
         {
             "request": request,
             "customers": customers,
@@ -61,4 +61,10 @@ def modify_customer(
             email=email,
         ),
     )
+    return RedirectResponse("/html", status_code=302)
+
+
+@router.post("/delete", response_class=HTMLResponse)
+def delete_customer(request: Request, name: Annotated[str, Form(...)]):
+    service.delete_customer(name)
     return RedirectResponse("/html", status_code=302)
