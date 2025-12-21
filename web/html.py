@@ -1,27 +1,40 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Request
+from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from model.customer import Customer
 from service import customer as service
+from service import user as user
 
 router = APIRouter(prefix="/html")
 
 templates = Jinja2Templates(directory="templates")
 
 
+def unauth():
+    raise HTTPException(
+        status_code=404,
+        detail="Wrong credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
 @router.get("/", response_class=HTMLResponse)
 def get_all(request: Request):
-    customers = service.get_all()
-    return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
-            "customers": customers,
-        },
-    )
+    token = request.cookies["token"]
+    if user.get_current_user(token):
+        customers = service.get_all()
+        return templates.TemplateResponse(
+            "index.html",
+            {
+                "request": request,
+                "customers": customers,
+            },
+        )
+    else:
+        unauth()
 
 
 @router.post("/", response_class=HTMLResponse)
@@ -32,15 +45,19 @@ def create(
     phone: Annotated[str, Form(...)],
     email: Annotated[str, Form(...)],
 ):
-    service.create_customer(
-        Customer(
-            name=name,
-            address=address,
-            phone=phone,
-            email=email,
+    token = request.cookies["token"]
+    if user.get_current_user(token):
+        service.create_customer(
+            Customer(
+                name=name,
+                address=address,
+                phone=phone,
+                email=email,
+            )
         )
-    )
-    return RedirectResponse("/html", status_code=302)
+        return RedirectResponse("/html", status_code=302)
+    else:
+        unauth()
 
 
 @router.post("/update", response_class=HTMLResponse)
@@ -52,19 +69,27 @@ def modify_customer(
     phone: Annotated[str, Form(...)],
     email: Annotated[str, Form(...)],
 ):
-    service.update_customer(
-        original_name,
-        Customer(
-            name=name,
-            address=address,
-            phone=phone,
-            email=email,
-        ),
-    )
-    return RedirectResponse("/html", status_code=302)
+    token = request.cookies["token"]
+    if user.get_current_user(token):
+        service.update_customer(
+            original_name,
+            Customer(
+                name=name,
+                address=address,
+                phone=phone,
+                email=email,
+            ),
+        )
+        return RedirectResponse("/html", status_code=302)
+    else:
+        unauth()
 
 
 @router.post("/delete", response_class=HTMLResponse)
 def delete_customer(request: Request, name: Annotated[str, Form(...)]):
-    service.delete_customer(name)
-    return RedirectResponse("/html", status_code=302)
+    token = request.cookies["token"]
+    if user.get_current_user(token):
+        service.delete_customer(name)
+        return RedirectResponse("/html", status_code=302)
+    else:
+        unauth()
