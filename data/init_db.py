@@ -15,3 +15,22 @@ def create_db() -> tuple[Connection, Cursor]:
 
 
 conn, curs = create_db()
+
+
+def init_db():
+    conn, curs = create_db()
+    curs.execute("""
+        CREATE TABLE IF NOT EXISTS user(
+        name TEXT PRIMARY KEY,
+        email TEXT,
+        hashed_password TEXT)
+    """)
+    curs.execute("""CREATE TABLE IF NOT EXISTS refrigerator(
+        food_name TEXT PRIMARY KEY,
+        quantity INTEGER,
+        user TEXT,
+        FOREIGN KEY (user) REFERENCES user(name)
+        ON DELETE CASCADE
+    )""")
+    conn.commit()
+    conn.close()

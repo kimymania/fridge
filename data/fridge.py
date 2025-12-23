@@ -6,10 +6,6 @@ from model.fridge import Food
 from .init_db import create_db
 
 conn, curs = create_db()
-curs.execute("""CREATE TABLE IF NOT EXISTS refrigerator(
-    food_name TEXT PRIMARY KEY,
-    quantity INTEGER)
-""")
 
 
 def row_to_model(row: tuple[str, int]) -> Food:
@@ -21,16 +17,18 @@ def model_to_dict(model: Food) -> dict:
     return model.model_dump()
 
 
-def get_all() -> list[Food]:
-    sql = """SELECT * FROM refrigerator"""
-    curs.execute(sql)
+def get_all(user: str) -> list[Food]:
+    sql = """SELECT food_name, quantity FROM refrigerator WHERE user = :user"""
+    params = {"user": user}
+    curs.execute(sql, params)
     datas = curs.fetchall()
     return [row_to_model(data) for data in datas]
 
 
-def add_food(food: Food):
-    sql = """INSERT INTO refrigerator (food_name, quantity) VALUES (:food_name, :quantity)"""
+def add_food(food: Food, user: str):
+    sql = """INSERT INTO refrigerator (food_name, quantity, user) VALUES (:food_name, :quantity, :user)"""
     params = model_to_dict(food)
+    params["user"] = user
     try:
         curs.execute(sql, params)
     except IntegrityError as e:
@@ -38,9 +36,10 @@ def add_food(food: Food):
     conn.commit()
 
 
-def update_food_quantity(food: Food):
-    sql = """UPDATE refrigerator SET quantity=:quantity WHERE food_name=:food_name"""
+def update_food_quantity(food: Food, user: str):
+    sql = """UPDATE refrigerator SET quantity=:quantity WHERE food_name=:food_name AND user=:user"""
     params = model_to_dict(food)
+    params["user"] = user
     curs.execute(sql, params)
     if curs.rowcount == 1:
         conn.commit()
@@ -48,9 +47,12 @@ def update_food_quantity(food: Food):
         raise Missing(f"{food.food_name} not found")
 
 
-def remove_food(food_name: str):
-    sql = """DELETE FROM refrigerator WHERE food_name=:food_name"""
-    params = {"food_name": food_name}
+def remove_food(food_name: str, user):
+    sql = """DELETE FROM refrigerator WHERE food_name=:food_name AND user=:user"""
+    params = {
+        "food_name": food_name,
+        "user": user,
+    }
     curs.execute(sql, params)
     if curs.rowcount != 1:
         raise Missing(f"{food_name} not found")

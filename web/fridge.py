@@ -1,32 +1,25 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Form, HTTPException, Request
+from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from model.customer import Customer
+from auth import get_current_user, unauth
+from model.fridge import Food
 from service import fridge as service
 from service import user as user
 
-router = APIRouter(prefix="/fridge")
+router = APIRouter(prefix="/fridge", tags=["fridge"])
 
 templates = Jinja2Templates(directory="templates")
-
-
-def unauth():
-    raise HTTPException(
-        status_code=404,
-        detail="Wrong credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
 
 
 @router.get("/", response_class=HTMLResponse)
 def get_all(request: Request):
     token = request.cookies["token"]
-    username = user.get_current_user(token)
+    username = get_current_user(token)
     if username:
-        items = service.get_all()
+        items = service.get_all(username)
         return templates.TemplateResponse(
             "index.html",
             {
@@ -40,22 +33,19 @@ def get_all(request: Request):
 
 
 @router.post("/", response_class=HTMLResponse)
-def create(
+def add_food(
     request: Request,
-    name: Annotated[str, Form(...)],
-    address: Annotated[str, Form(...)],
-    phone: Annotated[str, Form(...)],
-    email: Annotated[str, Form(...)],
+    food_name: Annotated[str, Form(...)],
+    quantity: Annotated[int, Form(...)],
 ):
     token = request.cookies["token"]
-    if user.get_current_user(token):
-        service.create_customer(
-            Customer(
-                name=name,
-                address=address,
-                phone=phone,
-                email=email,
-            )
+    if username := get_current_user(token):
+        service.add_food(
+            Food(
+                food_name=food_name,
+                quantity=quantity,
+            ),
+            username,
         )
         return RedirectResponse("/fridge", status_code=302)
     else:
@@ -63,35 +53,33 @@ def create(
 
 
 @router.post("/update", response_class=HTMLResponse)
-def modify_customer(
+def update_food_quantity(
     request: Request,
-    original_name: Annotated[str, Form(...)],
-    name: Annotated[str, Form(...)],
-    address: Annotated[str, Form(...)],
-    phone: Annotated[str, Form(...)],
-    email: Annotated[str, Form(...)],
+    food_name: Annotated[str, Form(...)],
+    quantity: Annotated[int, Form(...)],
 ):
     token = request.cookies["token"]
-    if user.get_current_user(token):
-        service.update_customer(
-            original_name,
-            Customer(
-                name=name,
-                address=address,
-                phone=phone,
-                email=email,
+    if username := get_current_user(token):
+        service.update_food_quantity(
+            Food(
+                food_name=food_name,
+                quantity=quantity,
             ),
+            username,
         )
-        return RedirectResponse("/html", status_code=302)
+        return RedirectResponse("/fridge", status_code=302)
     else:
         unauth()
 
 
-@router.post("/delete", response_class=HTMLResponse)
-def delete_customer(request: Request, name: Annotated[str, Form(...)]):
+@router.post("/remove", response_class=HTMLResponse)
+def remove_food(
+    request: Request,
+    food_name: Annotated[str, Form(...)],
+):
     token = request.cookies["token"]
-    if user.get_current_user(token):
-        service.delete_customer(name)
-        return RedirectResponse("/html", status_code=302)
+    if username := get_current_user(token):
+        service.remove_food(food_name, username)
+        return RedirectResponse("/fridge", status_code=302)
     else:
         unauth()

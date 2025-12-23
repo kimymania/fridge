@@ -4,16 +4,16 @@ from fastapi import APIRouter, Form, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from auth import create_access_token
+from auth import create_access_token, unauth
 from error import Duplicate
 from service import user as service
 
-router = APIRouter(prefix="/login")
+router = APIRouter(tags=["login"])
 
 templates = Jinja2Templates(directory="templates")
 
 
-@router.get("/", response_class=HTMLResponse)
+@router.get("/login", response_class=HTMLResponse)
 def get_login_page(request: Request):
     return templates.TemplateResponse(
         "login.html",
@@ -21,20 +21,15 @@ def get_login_page(request: Request):
     )
 
 
-@router.post("/", response_class=HTMLResponse)
+@router.post("/login", response_class=HTMLResponse)
 def login(
-    request: Request,
     response: Response,
     user_name: Annotated[str, Form(...)],
     user_password: Annotated[str, Form(...)],
 ):
     user = service.auth_user(user_name, user_password)
     if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="Wrong credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise unauth()
     else:
         access_token = create_access_token(user)
         response = RedirectResponse("/fridge", status_code=302)
@@ -42,7 +37,7 @@ def login(
         return response
 
 
-@router.post("/signup")
+@router.post("/login/signup", response_class=HTMLResponse)
 def signup(
     user_name: Annotated[str, Form(...)],
     user_password: Annotated[str, Form(...)],
@@ -50,7 +45,13 @@ def signup(
 ):
     if user_password != password_check:
         raise HTTPException(status_code=401, detail="비밀번호와 비밀번호 확인이 일치하지 않습니다")
-    query = service.create_user(user_name, user_password)
-    if isinstance(query, Duplicate):
+    try:
+        service.create_user(user_name, user_password)
+    except Duplicate:
         raise HTTPException(status_code=409, detail="이미 등록된 아이디입니다")
-    return RedirectResponse("/login", status_code=201)
+    return RedirectResponse("/login", status_code=302)
+
+
+@router.post("/logout", response_class=HTMLResponse)
+def logout():
+    return RedirectResponse("/login", status_code=302)

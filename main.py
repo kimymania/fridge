@@ -1,11 +1,19 @@
+from contextlib import asynccontextmanager
+
 import uvicorn
 from fastapi import FastAPI
 
-from web import fridge, login, user
+from data.init_db import init_db
+from web import fridge, login
 
-app = FastAPI()
 
-app.include_router(user.router)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 app.include_router(fridge.router)
 app.include_router(login.router)
 

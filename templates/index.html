@@ -6,10 +6,15 @@
     <title>{{ username }}님의 냉장고</title>
   </head>
   <body>
+    <h2>{{ username }}님의 냉장고</h2>
+    <form action="/logout" method="post">
+      <button type="submit">로그아웃</button>
+    </form>
+    <br />
     {% include "create.html" %}
     <br />
     {% include "delete.html" %}
     <br />
-    {% include "read_update.html" %}
+    {% include "fridge.html" %}
   </body>
 </html>

@@ -1,13 +1,15 @@
 <table>
   <tr>
-    <td>이름</td>
-    <td>개수</td>
+    <td>음식</td>
+    <td>수량</td>
   </tr>
   {% for item in items %}
-  <tr>
-    <td><input type="text" name="name" value="{{ item.name }}" readonly /></td>
-    <td><input type="text" name="quantity" value="{{ item.quantity }}" /></td>
-    <td><input type="submit" value="수정" /></td>
-  </tr>
+  <form action="/fridge/update" method="post">
+    <tr>
+      <td><input type="text" name="food_name" value="{{ item.food_name }}" readonly /></td>
+      <td><input type="number" name="quantity" value="{{ item.quantity }}" /></td>
+      <td><input type="submit" value="수정" /></td>
+    </tr>
+  </form>
   {% endfor %}
 </table>

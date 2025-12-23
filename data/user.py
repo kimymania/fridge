@@ -5,13 +5,6 @@ from model.user import DB_User, User
 
 from .init_db import conn, curs
 
-curs.execute("""
-    CREATE TABLE IF NOT EXISTS user(
-    name TEXT PRIMARY KEY,
-    email TEXT,
-    hashed_password TEXT)
-""")
-
 
 def row_to_model(row: tuple) -> DB_User:
     name, email, hashed_password = row
