@@ -1,14 +1,9 @@
-from datetime import datetime, timedelta
-
 import bcrypt
 from fastapi import HTTPException
 from jose import jwt
 
 from data import user as data
 from model.user import DB_User, User
-
-SECRET_KEY = "9A2D253F008E9667ECE093F3C427CC8689107B3299172E3C5DE0DF65AA24125E"
-ALGORITHM = "HS256"
 
 
 def find_user(username) -> User | None:
@@ -42,24 +37,12 @@ def auth_user(username, password) -> User | None:
     return user
 
 
-def create_access_token(data: dict, expire: timedelta):
-    data = data.copy()
-    now = datetime.now()
-    data.update({"exp": now + expire})
-    encoded_jwt = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
-
-def create_user(user: DB_User):
+def create_user(username: str, password: str):
     user = DB_User(
-        name=user.name,
-        email=user.email,
-        hashed_password=hash_password(user.hashed_password),
+        name=username,
+        hashed_password=hash_password(password),
     )
     return data.create_user(user)
-
-
-_fake_db = {"bob": True, "jane": False}
 
 
 def decode_token(token: str):
@@ -70,6 +53,9 @@ def decode_token(token: str):
 
 
 def get_current_user(token: str):
+    """Decode token -> check if user in DB
+
+    :returns: username string"""
     username = decode_token(token)
     user = find_user(username)
     if not user:

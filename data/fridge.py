@@ -1,7 +1,7 @@
 from sqlite3 import IntegrityError
 
 from error import Duplicate, Missing
-from model.my_food import Food
+from model.fridge import Food
 
 from .init_db import create_db
 

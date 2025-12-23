@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 class User(BaseModel):
     name: str
-    email: str
+    email: str | None = None
     hashed_password: str
 
 

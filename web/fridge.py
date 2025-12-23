@@ -5,10 +5,10 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from model.customer import Customer
-from service import customer as service
+from service import fridge as service
 from service import user as user
 
-router = APIRouter(prefix="/html")
+router = APIRouter(prefix="/fridge")
 
 templates = Jinja2Templates(directory="templates")
 
@@ -24,13 +24,15 @@ def unauth():
 @router.get("/", response_class=HTMLResponse)
 def get_all(request: Request):
     token = request.cookies["token"]
-    if user.get_current_user(token):
-        customers = service.get_all()
+    username = user.get_current_user(token)
+    if username:
+        items = service.get_all()
         return templates.TemplateResponse(
             "index.html",
             {
                 "request": request,
-                "customers": customers,
+                "username": username,
+                "items": items,
             },
         )
     else:
@@ -55,7 +57,7 @@ def create(
                 email=email,
             )
         )
-        return RedirectResponse("/html", status_code=302)
+        return RedirectResponse("/fridge", status_code=302)
     else:
         unauth()
 
